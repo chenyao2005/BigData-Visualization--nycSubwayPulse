@@ -3,6 +3,7 @@
     <div class="header">
       <h1>纽约地铁脉搏 (NYC Subway Pulse)</h1>
       <p>探索 2026年2月4日 曼哈顿及周边的通勤潮汐现象</p>
+      <button class="doc-btn" @click="showDoc = true">📄 项目说明文档</button>
     </div>
 
     <div class="main-content">
@@ -69,8 +70,70 @@
       {{ flowType === 'in_flow' ? '总客流' : flowType === 'omny' ? '刷手机支付' : '刷卡支付' }}人数: <span class="highlight">{{ tooltip.val }}</span>
       <div class="click-hint">点击该站点，查看全天趋势 📈</div>
     </div>
-  </div>
-</template>
+<div v-show="tooltip.visible" class="tooltip" :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px' }">
+      <strong>{{ tooltip.name }}</strong><br/>
+      {{ flowType === 'in_flow' ? '总客流' : flowType === 'omny' ? '刷手机' : '刷卡' }}人数: <span class="highlight">{{ tooltip.val }}</span>
+      <div class="click-hint">点击查看全天趋势 📈</div>
+    </div>
+
+    <div v-if="showDoc" class="doc-modal-overlay" @click="showDoc = false">
+      <div class="doc-modal-content" @click.stop>
+        <button class="close-btn" @click="showDoc = false">✖ 关闭</button>
+        <h2>项目说明文档</h2>
+        
+        <h3>1. 旨在解答什么问题？</h3>
+        <p>本网站旨在探索纽约地铁通勤潮汐的演变规律。通过可视化 24 小时内的客流数据，解答以下核心问题：</p>
+        <ul>
+          <li><strong>时空分布特征：</strong>早晚高峰期间，曼哈顿商业区与外围住宅区（如布鲁克林、皇后区）的客流潮汐是如何涌动的？比如在早上</li>
+          <li><strong>技术普及率差异：</strong>现代移动支付技术（OMNY）与传统磁条卡（MetroCard）的使用比例在不同行政区、不同时间段是否存在显著差异？是否能反映出不同社区对新技术的接受度或通勤人群的结构差异？</li>
+        </ul>
+
+        <h3>2. 设计决策的依据</h3>
+        <p>为了让用户能够“引人入胜”地探索上述问题，我采用了以下可视化编码与交互技术：</p>
+        
+        <h4>可视化编码 (Visual Encoding)：</h4>
+        <ul>
+          <li><strong>空间映射 (Spatial)：</strong>采用真实地理坐标映射（Mercator 投影），使用户能直观建立物理世界的空间认知。</li>
+          <li><strong>面积映射 (Size)：</strong>使用圆点大小（平方根比例尺 <code>scaleSqrt</code>）精确映射绝对客流量，确保视觉面积与数据真实对应。</li>
+          <li><strong>颜色映射 (Color)：</strong>使用连续型色带（黄→红）映射拥挤度，红色在暗黑背景下能迅速吸引注意力，有效传达“高峰、拥挤”的语义。</li>
+          <li><strong>折线图 (Line Chart)：</strong>在辅视图中使用带有透明填充的平滑折线图，展示 24 小时时间序列，并用三种具有高度对比的颜色（翠绿、橙、蓝）区分总客流与不同支付方式。</li>
+        </ul>
+
+        <h4>交互技术 (Interaction)：</h4>
+        <ul>
+          <li><strong>动态查询：</strong>放弃了静态的“多重小图”，采用了时间滑块 (Slider)。用户拖动滑块时能产生动画效果，直观感受到城市的“脉搏”。</li>
+          <li><strong>按需显示细节：</strong>鼠标悬浮 (Hover) 提供精准数值提示，避免全局显示文字导致的视觉杂乱。</li>
+          <li><strong>多视图联动：</strong>点击地图上的特定站点，左侧辅助视图会实时生成该站点的 24 小时趋势图，实现从宏观空间到微观时间维度的下钻分析。</li>
+          <li><strong>刷选与过滤：</strong>提供行政区下拉菜单与支付方式切换按钮，遵循 Shneiderman 的“先总览，后过滤”原则，帮助用户剥离干扰信息。</li>
+          <li><strong>支持缩放与拖拽：</strong>用户可根据需要缩小和放大地图，并进行拖拽，以实现更具体地观察。</li>
+        </ul>
+
+        <h4>替代方案与最终决策：</h4>
+        <p>最初考虑将进站与出站数据进行对比，但经过数据探索发现 MTA 采取单向计费，无出站数据。因此果断调整方向，挖掘了 <code>payment_method</code> 这一更有叙事价值的维度，使得作品的社会学意义更加丰富。</p>
+
+       <h3>3. 外部资源引用</h3>
+        <ul>
+          <li><strong>底图地理边界 (GeoJSON)：</strong><a href="https://data.cityofnewyork.us/City-Government/Borough-Boundaries/gthc-hcne" target="_blank" rel="noopener noreferrer">NYC Borough Boundaries</a></li>
+          
+          <li><strong>地铁站坐标字典 (CSV)：</strong><a href="https://data.ny.gov/Transportation/MTA-Subway-Stations/39hk-dx4f/data_preview" target="_blank" rel="noopener noreferrer">MTA Subway Stations</a></li>
+          
+          <li><strong>小时级客流动态数据 (CSV)：</strong><a href="https://data.ny.gov/Transportation/MTA-Subway-Hourly-Ridership-Beginning-2025/5wq4-mkjj/data_preview" target="_blank" rel="noopener noreferrer">MTA Subway Hourly Ridership</a>（选取了 2026.2.4-2.5 的数据）</li>
+        </ul>
+
+        <h3>4. 开发流程概述</h3>
+        <ul>
+          <li><strong>团队分工：</strong>独立完成（数据清洗、UI 设计、前端交互实现）。</li>
+          <li><strong>耗时评估：</strong>总计耗时约 30 工时。</li>
+        </ul>
+        <h4>开发评述：</h4>
+        <ul>
+          <li><strong>数据预处理与结构设计（约 8 小时）：</strong>官方 CSV 数据集非常庞大且存在冗余。最耗时的部分是编写 Python 脚本清洗数据，按时间、站点和支付方式进行 <code>groupby</code> 与透视，并最终将其转化为对 D3 友好的嵌套 JSON 结构。同时还需要将包含行政区的 CSV 元数据与 JSON 动态数据在前端进行主键合并 (Join)。</li>
+          <li><strong>D3 交互与生命周期控制（约 12 小时）：</strong>确保拖动时间滑块时，散点的 Enter/Update/Exit 动画能够流畅过渡而不卡顿。初期由于过渡动画堆叠导致浏览器渲染延迟，后续通过优化数据绑定和取消高频触发时的动画延迟解决了性能瓶颈。</li>
+          <li><strong>UI 调优（约 10 小时）：</strong>确定暗色主题，地图大小、缩放比例、位置，站点的大小、展现形式以及多视图（包括折线图、仪表盘、弹窗等）间的排版布局，确保最终界面符合“简洁优雅”的设计目标。</li>
+        </ul>
+      </div>
+    </div>
+    </div> </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
@@ -81,6 +144,7 @@ const currentHour = ref(8);
 const flowType = ref('in_flow'); // 
 const selectedBorough = ref('All'); // 区域筛选
 const selectedStation = ref(null); // 被点击的站点
+const showDoc = ref(false);//控制说明文档的弹窗
 
 const mapContainer = ref(null);
 const chartContainer = ref(null);
@@ -436,5 +500,92 @@ html, body {
   pointer-events: none; /* 关键：加上这个属性，鼠标穿透文字，不影响底下地图的拖拽 */
   z-index: 10;
   border: 1px solid #34495e;
+}
+/* --- 说明文档弹窗样式--- */
+.doc-modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.85); /* 稍微加深遮罩，突出便签 */
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000;
+}
+
+.doc-modal-content {
+  background: #1a202c; /* 更现代的深色护眼背景 */
+  padding: 40px 55px;  /* 增加内边距，让文字呼吸感更强 */
+  border-radius: 16px;
+  width: 850px;        /* 【调大】大幅加宽便签 */
+  max-width: 92vw; 
+  max-height: 85vh;    /* 【调大】加高便签 */
+  overflow-y: auto;
+  border: 1px solid #2d3748;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.9);
+  position: relative;
+  text-align: left;    /* 强制整体左对齐 */
+}
+
+/* 标题层次与对齐优化 */
+.doc-modal-content h2 { 
+  color: #f39c12; margin-top: 0; margin-bottom: 25px; 
+  font-size: 1.8rem; text-align: center; 
+  border-bottom: 1px solid #2d3748; padding-bottom: 15px;
+}
+.doc-modal-content h3 { 
+  color: #3498db; margin-top: 30px; margin-bottom: 15px; 
+  font-size: 1.35rem; border-left: 4px solid #3498db; padding-left: 12px;
+}
+.doc-modal-content h4 { 
+  color: #e1b12c; margin-top: 20px; margin-bottom: 12px; font-size: 1.15rem;
+}
+
+/* 正文与列表段落优化 */
+.doc-modal-content p { 
+  color: #e2e8f0; line-height: 1.8; font-size: 1.05rem; 
+  margin-top: 0; margin-bottom: 15px; text-align: justify; /* 两端对齐更美观 */
+}
+.doc-modal-content ul { 
+  padding-left: 25px; margin-top: 0; margin-bottom: 20px; 
+}
+.doc-modal-content li { 
+  color: #e2e8f0; line-height: 1.8; font-size: 1.05rem; margin-bottom: 10px; 
+}
+.doc-modal-content strong { color: #fff; font-weight: 600;} /* 加粗重点全白发亮 */
+.doc-modal-content code { 
+  background: #2d3748; padding: 2px 6px; border-radius: 4px; 
+  font-family: monospace; color: #a0aec0;
+}
+
+/* 关闭按钮优化 */
+.close-btn {
+  position: absolute; top: 20px; right: 25px;
+  background: #e53e3e; color: white; border: none; 
+  padding: 8px 16px; border-radius: 6px;
+  cursor: pointer; font-weight: bold; font-size: 0.95rem; transition: background 0.2s;
+}
+.close-btn:hover { background: #c53030; }
+
+/* 顶部触发说明文档的按钮样式 */
+.doc-btn {
+  background: #3498db; color: white; border: none;
+  padding: 5px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: bold;
+  cursor: pointer; margin-left: 15px; vertical-align: middle; transition: 0.2s;
+}
+.doc-btn:hover { background: #2980b9; transform: scale(1.05); }
+
+/* --- 专属暗黑模式自定义滚动条 --- */
+.doc-modal-content::-webkit-scrollbar { width: 8px; }
+.doc-modal-content::-webkit-scrollbar-track { background: #1a202c; border-radius: 4px; }
+.doc-modal-content::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 4px; }
+.doc-modal-content::-webkit-scrollbar-thumb:hover { background: #718096; }
+/* 说明文档中的超链接样式 */
+.doc-modal-content a {
+  color: #63b3ed; /* 亮蓝色，适合暗色背景 */
+  text-decoration: none; /* 去掉默认的下划线 */
+  font-weight: 500;
+  border-bottom: 1px dashed #63b3ed; /* 换成虚线下划线，更显精致 */
+  transition: all 0.2s ease;
+}
+.doc-modal-content a:hover {
+  color: #90cdf4; /* 鼠标悬浮时变亮 */
+  border-bottom-color: #90cdf4;
 }
 </style>
