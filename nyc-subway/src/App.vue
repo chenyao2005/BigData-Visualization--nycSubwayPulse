@@ -204,9 +204,9 @@ const initMap = async () => {
 
   try {
     const [geoData, flowData, csvData] = await Promise.all([
-      d3.json('/nyc_boroughs.geojson'),
-      d3.json('/subway_day.json'),
-      d3.csv('/stations_location.csv')
+      d3.json('./nyc_boroughs.geojson'),
+      d3.json('./subway_day.json'),
+      d3.csv('./stations_location.csv')
     ]);
 
     ridershipData = flowData;
